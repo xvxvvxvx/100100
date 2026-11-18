@@ -1,0 +1,118 @@
+# Gold/Steak/01O0
+Free-to-play simulator using fictional currency.
+
+## Notes
+- Leaving a round mid-game forfeits the wager.
+- Have fun please I worked hard on the game :3
+
+## Update 2.3
+Gem-Shop crates (TAGS / GRADIENTS), 5 new tags + 4 new gradients, Cases fake-common and rollback tip-over events (tease chance 80% -> 60%),
+Aviamasters rebalance (RTP about 97%) and visual upgrade, global rebrand (01O0coin, Wager).
+
+## Update 2.4
+Quests replaced (daily: 500 rounds / 10,000 profit / 1 h; weekly: 4,000 rounds / 100,000 profit / 5 rank-ups / 5 h; playtime quests are fed by the shared playtime counter), playtime moved to the homepage, new header layout,
+Gem-Shop cleanup (no rotation timer), crate-opening Skip button fixed in its own slot, cosmetic preview particles only on hover, rank layout fixes at 100% zoom,
+`?h, ?m, ?s` daily quest timer, and a sidebar **about:blank** toggle.
+
+## Update 2.45
+- **Rank Expansion 2**: Rank-Up page 3; Extreme Demon -> Extreme Demon I; new ranks Extreme Demon II/III, Impossible Demon I-III, Unreal I-III, Division 5-1 (max). Icons `impossibledemon/unreal/div5..div1.jpg` are white placeholders: replace the files, keep the names.
+- **Speeds** (animation only): Cases 1.5x Silver, 2x Amethyst, 2.5x Impossible Demon I; Aviamasters 1.5x Silver, 2x Amethyst, 2.5x Division 5, 2.75x Division 1 (shown beside the Launch button). Rank-Up reward lines are generated from `CFG`.
+- **Calculator landing page** (`index.html`); the game moved to `game.html`. Typing `0 - 100` then `=` opens the game in an about:blank tab (calculator + game as two views). If pop-ups are blocked the tab navigates calculator <-> game instead. The sidebar about:blank button was removed.
+- **Aviamasters** RTP ~96.8% -> ~98.3% (lower runway-slide chances; rocket/item odds unchanged).
+- **Anti-macro**: `guard.js` now analyses every trusted click (including ones ignored during a Cases spin), catches fast/regular autoclickers, escalates the cool-down and keeps it across refreshes.
+
+## Update 2.5
+- **Renamed to Gold**: the logo, page title, welcome heading and home heading now read "Gold" in an animated gold gradient (`css/update25.css`). The calculator easter egg is still `0 - 100 =`.
+- **Cases**: new red **X** outcome (0x payout) drawn as a small X on the tile. Rolled odds: X 31.5% / Common 20% / Uncommon 27% / Rare 13% / Legendary 5.2% / Mythic 2.6% / Secret 0.7%. The Case Odds list shows X 26% / Common 25% / Uncommon 27% / Rare 13% / Legendary 5% / Mythic 3% / Secret 1%. Multiplier ranges: Common .25-.85x / Uncommon 1-1.3x / Rare 1.35-2.1x / Legendary 2.5-3.6x / Mythic 4-5.7x / Secret 6.5-12x (~99% return, 48.5% of rounds in profit; the original game returned ~187%). Rare flips (presentation only): a real X can first appear as a Common/Uncommon/Rare tile (6%) and a non-X result can first appear as an X (4%); the tile flips over to the real result.
+- **Aviamasters**: win rate raised to sit next to Cases (91% of flights land, ~44% finish in profit; rocket chance .3, items +.4/+.8/+2/+4 and x1.3/x1.6/x1.9, multiplier growth slows above 2x) while the return is ~99%. Landing below 1x is a loss: the multiplier and the history chip are red, no confetti.
+- **Economy rebalance**: both games now return about 95-99%, so balances no longer compound. Rank-up money requirements re-curved from 2,500 - 7,000,000 down to 225 - 990,000, and the rounds-played requirement per rank-up cut about 20% (Unranked 50 -> 40 ... Division 2 3,000 -> 2,400). Daily profit quest 10,000 -> 2,500, weekly profit quest 100,000 -> 20,000.
+- **Gem crates**: Legendary tags now share 6.5% (was 5%); Commons trimmed to 9.7% each so the table still totals 100.
+- **Quests**: Gem rewards buffed (daily 2/3/2 -> 3/4/3, weekly 3/2/2/2 -> 5/4/4/4). Weekly quests now level up: claiming one immediately replaces it with a harder one (up to 5 extra levels, e.g. Play 4,000 rounds -> 7,000 -> 11,000 -> 16,000 -> 22,000 -> 30,000 paying 5 -> 7 -> 10 -> 14 -> 18 -> 24 Gems; progress restarts from 0 at each level, everything resets with the week). The new quest pops in with a flip-in animation, a TIER badge and a NEW QUEST! tag; a quest that becomes complete plays a check-mark and confetti burst (all animations respect reduced-motion).
+- **2X coin boost timer**: while the Daily Spin 2X bonus is active a glowing `2X mm:ss` countdown shows to the left of your name, tag and rank in the header (turns red in the last minute).
+
+## Update 2.7 (Pirate Token, Mastery, Pirate perks)
+- **Cases odds**: Pirate Token is now exactly **0.05%** (was 0.2%), still 100-150x. Rare tiers are slightly more common: Legendary 5.2% -> 5.6%, Mythic 2.6% -> 2.9%, Secret 0.7% -> 0.85% (taken from X: now 30.6%). Weights have two decimals now (total 10,000). The Case Odds list shows X 26 / Common 25 / Uncommon 27 / Rare 13 / Legendary 5.4 / Mythic 2.9 / Secret 0.65 / Pirate 0.05 (total 100). Return is about **112.2%** (was 125.8%) and 49.4% of rounds are in profit.
+- **Pirate Token cinematic**: unchanged (chest drops, opens, coins explode, "PIRATE TOKEN / NEW RARITY ACHIEVED"). When it is closed (Continue / Skip / Esc / Enter) the Pirate reward chest opens: gold coins rain down and a vertical reel (arrows on both sides) rolls the reward, then the result is revealed. The wager button stays locked until the reward window is closed.
+- **Pirate rewards** (`js/pirate.js`): every Pirate Token rolls one of 14 rewards, each exactly 1 in 14: +1 case row, +2 case rows, 200 Gems, 250 Gems, Cases roll speed +2x / +3x, Aviamasters flight speed +2x / +3x, `[THE PIRATE]`, Treasure Finder Gradient, `[TREASURE FINDER]`, The Pirate Gradient, `[KING OF THE PIRATES]`, Instant Rank-Up. The reward is rolled and applied in the same save as the case payout (before any animation), so a refresh cannot re-roll it. If several rows land a Pirate Token, each grants its own reward. The Cases side panel lists the rewards and shows your queued rows / speed upgrade.
+  - **Extra rows**: queued for your next Cases wager only, max **3** extra rows. All rows spin at once underneath the main line, their multipliers are **added**, and the whole wager is **one** settled round for the rank-up round requirement. Every row counts for the Cases-opened, Legendary, Mythic, Secret and Pirate counters.
+  - **Speeds**: Cases roll speed and Aviamasters flight speed upgrades stack with your rank speed, effective speed max **5x** each (animation only). Aviamasters temporarily boosts `CFG.AVI_SPEED` while its page is mounted; the rank pages still show the pristine table.
+  - **Selling** (the offer is in the reward window): duplicate tag/gradient $45,000, extra row or speed upgrade $50,000 (selling removes what it granted), instant rank-up at max rank $100,000. All sales credit the wallet **and rank money** (they count toward the rank-up profit requirement).
+  - **Instant rank-up**: next rank at once; wallet = the new rank's starting cash + **15%** of the wallet *after* the round's payout; rank money and rounds reset; the rank's Gems are granted; counts as a rank-up for quests. At max rank it becomes the $100,000 sale instead.
+  - State lives in its own signed key `0-100_v2.7_perks`.
+- **Limited cosmetics** (`js/limited.js`): 5 Pirate cosmetics and 51 Mastery cosmetics. They are not in `COS` (never in the shop, crates or preview catalogue); `Cos.by()` resolves them, so inventory, equip, save and load work unchanged. Rarity "Limited", **unsellable** (`Inv.sell` refuses; the inventory shows an unsellable badge). Effects are pure CSS on a wrapper span (wind, sparkles, embers, bubbles, snow, glitch, pulse, lightning, shine, coins, pirate flag, straw hat) and respect reduced-motion.
+  - `[THE PIRATE]` waving pirate flag + animated black-and-white gradient; Treasure Finder Gradient (gold and sea-glass, sparkles); `[TREASURE FINDER]` animated gold + rising coins; The Pirate Gradient animated gold + falling coins; `[KING OF THE PIRATES]` bobbing straw hat + animated white-and-red gradient.
+- **Mastery** (`js/mastery.js`, sidebar page below Quests; the Quests icon is now a checkbox, Mastery uses a medal): 17 independent objectives x 10 levels - Cases opened, Aviamasters flights, Blackjack games, Plinko balls, Mines / Flip / Double or Nothing / Chicken games, Legendary / Mythic / Secret case drops, Pirate Tokens, Aviamasters landings at 4-5x / 5-6x / 6-7x / 7x+, and instant rank-ups. Early levels are easy (e.g. 20 Mines games = $250), later levels need far more and pay far more. Rewards are paid automatically (banner + confetti). Each objective has cosmetics at Level 3 (tag), 6 (gradient) and 10 (tag), e.g. Aviamasters flights Lv 3 = `[FLIGHT TAKER]` (wind effect on a cloudy blue gradient). The page shows progress, next milestone and every tier's requirement, cash and cosmetic preview.
+  - Counting: games count when the round settles (`Econ.settle` is wrapped); Blackjack split hands count as one game; Cases count every row; Aviamasters landing bands use the raw gross/bet multiplier ([4,5) [5,6) [6,7) [7,inf), unaffected by the 2X bonus). Cash is a wallet credit (not profit / rank money / quest progress). Progress lives in its own signed key `0-100_v2.7_mastery`; existing saves are untouched.
+
+## Update 2.75 (permanent rows, manual Mastery claims, collections)
+- **Rows**: Pirate Token "+1 Case Row" is permanent, stacks, persists and is capped at 2 (the +2 reward is gone, 13 rewards at 1/13 each). Extra rows are never consumed by a wager.
+- **Rank-Up Ready** (was Instant Rank-Up): fulfils every current rank-up requirement (rank money and rounds) and leaves the actual rank-up to the Rank-Up page. If already ready or at max rank it becomes the $100,000 sale.
+- **Economy**: Cases has separate actual tables for the main row (`p`) and extra rows (`px`); `d` (displayed chances) is unchanged and is the only one shown. Higher rarities are rarer and multipliers slightly lower (main row ~101.3% return, extra rows ~34.3% each).
+- **Mastery**: rewards are claimed manually (CLAIM / CLAIM ALL). Completed, claimable and claimed are tracked separately and claiming never resets progress. Every level also gives Gems. v2.7 saves migrate with already-paid levels marked claimed. New Tag Collection and Gradient Collection objectives (10 tiers, unique ownership, Lv3 tag / Lv6 gradient / Lv10 tag).
+- **Cosmetics**: `js/limfx.js` holds 15 themed limited cosmetics with their own animation, particles, icon and palette; the Treasure Finder tag matches its gradient and The Pirate Gradient matches [THE PIRATE]; the King of the Pirates hat sits lower.
+- **UI**: Home "Your balance" shows `$1,234,567,890.123` (display only). The Tag and Gradient chests have distinct spin/open animations.
+- Tests: `node tests/update275.test.js` (plus the updated `update27`, `update23`, `update25`, `update26`).
+
+## Update 2.8 (Fredoka, compact layout, Limited rarity, Coin / Gold wording)
+- **Gem-Shop**: the gem chip is now inline beside the page title instead of floating over the content, and the header balance pills wrap below 1500px wide so nothing overlaps. The crate chance guides and the tag/gradient preview keep their **X** pinned top-right (always visible, even when the list scrolls) and now also close when you click the dark backdrop (Esc still works).
+- **Calculator dialogue bug**: the bottom toast kept its "show" class after finishing, so hiding and re-showing the game view with Right Shift replayed the last message. The toast now clears itself when its animation ends or is cancelled, when the view is hidden, and on page hide. Toast behaviour everywhere else is unchanged.
+- **Layout at 100% zoom** (`css/update28.css`): smaller headings, padding and frame height, a more compact side panel, and a smaller Cases odds list, so more of each game fits in the first screen. Mobile layouts keep their single-column rules.
+  - **Aviamasters**: one-line description; Last win, Recent flights and Session now sit directly under the Launch / Turbo buttons, with the description last.
+  - **Plinko / Double or Nothing**: shorter side descriptions (odds and RTP statements unchanged).
+- **Branding / terminology**: `01O0`, `01O0coin` and `Steakcoin` no longer appear in visible text. The currency reads **Coin** and the site reads **Gold** (UI text, labels, toasts, tooltips, quest names, the disclaimer and the page title). This is applied by a display-only text layer in `js/update28.js`, so internal identifiers, the `0-100_*` save keys, existing balances and saved data are untouched. The static header label in `game.html` was edited directly. The strings still exist in the original source files; a find-and-replace there is the only remaining clean-up.
+- **Limited rarity redesign**: the Limited label is now an animated black pill with a white outline and a soft white glow (moving sheen), clearly different from Legendary gold; Limited item previews pulse a white glow. Applies everywhere the rarity label is drawn (inventory, Mastery rewards, Pirate rewards). Respects reduced-motion.
+- **Typography**: all Times New Roman / serif styling (the old Playfair Display headings) is replaced by **Fredoka** (Google Fonts, weights 300-700, `display=swap`, fallbacks Trebuchet MS / system-ui / sans-serif) and forced over every element, including canvas text (Aviamasters, Crash, Plinko). Fredoka tops out at weight 700, so 800/900 weights render as 700. The Google Fonts files are cached by the service worker. The calculator page (`index.html`) is unchanged and keeps its system font.
+- **Files**: new `css/update28.css`, `js/update28.js`, `tests/update28.test.js`; modified `game.html`, `js/loader.js` (loads `update28` last), `sw.js` (cache `gold-offline-v2.8.0`, new files pre-cached), `README.md`.
+- Tests: `node tests/update28.test.js`.
+
+## Update 2.95 (exploit fixes, k/m/b wagers, two goal bars, balance)
+- **Mines**: at most 23 mines (24 = one diamond is gone); a round lost with no safe tile no longer counts as a played round; 1.5 s gap between rounds (`CFG.GAP_MS`). Rounds under a $1 wager (`CFG.ROUND_MIN_BET`), abandoned rounds and extra Blackjack split hands no longer count for rank/quests/Mastery.
+- **Wagers** accept `k`, `m`, `b` (`1.5k` = 1,500, `2m` = 2,000,000, `1b`) in every game, including the ½ and 2x buttons.
+- **Your Goal**: money and rounds are two separate bars, shown at the top of every game page (and on Home), with an eye button that hides/shows them (remembered).
+- **Cases**: every tier raised (Common .28-.78 ... Pirate 100-145). Main-row return ~104.5%; extra rows still ~34.2% each.
+- **Daily Spin**: cash and Gem rewards grow +10% of base per rank (x1 at Unranked). The wheel page shows your rank's ranges.
+- **Aviamasters**: jackpot ranges 10-25x / 25-50x / 50-100x / 100-250x / 250-300x (chances .20 / .08 / .03 / .022 / .02% per landed flight); base items trimmed to keep ~101% return; the landing-chances dropdown opens and closes smoothly.
+- Tests: `node tests/update295.test.js`.
+
+## Tests
+`node tests/update30.test.js`, `node tests/update245.test.js`, `node tests/update23.test.js`, `node tests/update25.test.js`, `node tests/update26.test.js`, `node tests/update27.test.js`, `node tests/update275.test.js`, `node tests/update295.test.js`, `node tests/update28.test.js`, `node tests/economy.test.js`, `node tests/security.test.js`
+
+Much love,
+- Night n Claude <3
+
+## Update 3.0 (Rank Expansion 3, Achievements, lifetime tracking, pity, Rank-Up Gradients, Aviamasters bands)
+Install: extract `goldupdate300.zip` over the repository root and overwrite. Every changed file is a COMPLETE replacement (no patches). Nothing else needs to be edited. This README.md is the old README plus this section.
+
+**New files** - `js/cos30.js` (rank gradients, achievement definitions + 34 exclusive cosmetics, effects), `js/achievements.js` (tracking, signed save, claims, page, claim animation), `css/update30.css`, `tests/update30.test.js`, `img/elite.jpg`, `img/obsidian.jpg`, `img/netherite.jpg`, `img/bedrock.jpg` (white 256x256 placeholders: replace the files, keep the names; the mapping is `BIMG` in `js/ui.js`).
+**Replaced files** - `README.md`, `game.html`, `sw.js`, `js/loader.js`, `js/config.js`, `js/storage.js`, `js/economy.js`, `js/ui.js`, `js/mastery.js`, `js/progress.js`, `js/addon295.js`, `js/games/aviamasters.js`, `tests/update25.test.js`, `tests/update27.test.js`, `tests/update275.test.js`, `tests/update29.test.js`, `tests/update295.test.js`.
+
+### Rank Expansion 3
+- 12 new ranks after Division 1: Elite I-III, Obsidian I-III, Netherite I-III, Bedrock I-III (**Bedrock III is the maximum**; 47 ranks, 46 rank-ups). Requirements continue the page-2 curve (+5..+20% per step: Division 1 -> Elite I 1,100,000 / 2,600 rounds ... Bedrock II -> III 3,320,000 / 4,000); starting cash 5,500 .. 11,000 and Gems 36 .. 58, rising every rank. Rank-Up page 3 now ends at Division 1 and **page 4** holds the new ranks.
+- One shared definition (`RankFx` in `cos30.js`) drives rank text, promotion screen, Rank-Up Gradient cosmetics, inventory and equipped names: every gradient from page 3 (index 22+) is animated; Elite = black-to-gold + gold particles; Obsidian = black-to-purple, white outline, Nether-Portal pixel particles; Netherite = dark grey/black, animated golden outline, gold embers + ash; Bedrock = black-to-white, animated purple outline, white/violet sparks (CSS `.rkf-<family>` in `css/update30.css`, reduced-motion respected).
+
+### Achievements (sidebar, directly below Mastery)
+15 tracks x 5 levels (75 levels): Lifetime Cash Earned, Lifetime Rounds, Gems Earned (lifetime), Rank Conqueror, Endgame Ascent (Elite/Netherite/Bedrock), Gradient Crates Opened, Tag Crates Opened, Lifetime Profit, Highest Multiplier, Minigames Completed, Game Variety, Mastery Levels, Rare Discoveries, Legendary Discoveries, Daily Streak. Claims are **individual only** (no Claim All) with a tier-coloured trophy celebration; the claimed bit is saved before paying, a cosmetic is never added twice. Coin/Gem rewards are deliberately small (max $25,000 / 12 Gems per level); the prestige is 34 exclusive animated tags and gradients (rarity "Exclusive", unsellable), e.g. `[THE MILLIONAIRE]` (1,000,000 lifetime Coin), `[THE GOLD]` (2,000 rounds; silver slowly turns to Midas gold), `[THE NETHER]` (Obsidian I; pixel font, Obsidian family), crate-themed cosmetics at 150 crates. Own signed key `0-100_v3.0_ach` (claims + high-water marks, so selling a cosmetic never un-completes a level).
+
+### Lifetime tracking (main signed save, `Store.d.ls`, helper `Life` in `storage.js`)
+`lc` Coin income, `lp` round profit, `lg` Gems earned (counted in `Store.sync`, i.e. every real Gem gain, never spending), `lm` completed minigames (wagers >= `ROUND_MIN_BET`, not `noCount`), `hm` highest multiplier, `ds/dsb/dsl` daily streak, `cg/ct` crates opened, `rkh` highest rank. Incremented where the events happen (`Econ.settle`, `Econ.addCoins`, `Daily`, `Rank.rankUp`, `Crate.open`).
+
+### Quality of life
+- **Pity**: every spin counts; Epic / Legendary rolls no longer reset it; only the guaranteed spin (counter at 10 -> next spin guaranteed Epic+) consumes it; Tag and Gradient stay independent; own signed key unchanged.
+- **Rank-Up Gradients** replace Mastery "Rank-Up Ready Rewards" (`ir`): counter = highest rank, 10 levels (ranks 1, 5, 10, 15, 20, 25, 30, 35, 40, 46), **no Coin / Gems**, 47 gradients `rg_0..rg_46` ("<Rank> Gradient"). Ten levels cannot map one-to-one onto 47 ranks, so level n grants the milestone rank's gradient **and every lower rank gradient not yet owned**.
+- **Aviamasters**: 4-5x, 5-6x and 6-7x (and 2-4x) are now explicit landing bands (chances per landed flight 1.2% / 0.6% / 0.4%, 2% for 2-4x); soft cap lowered (1.2, slope .1) and rocket divisor 2.05 so the return is recalibrated. Measured over 8,000,000 flights: RTP **1.0086**, profit rate **36.13%**; displayed odds (incl. new rows) match the simulation and total 100%. Jackpots unchanged.
+
+### Migration / compatibility
+Old saves load unchanged: missing `ls` is created (signed saves seed lifetime profit/Coin from the existing per-game "made" stats and Gems from the current balance; unsigned legacy saves start at 0). Mastery data gets version `v:3`: the **old `ir` progress and claims are reset once** (they counted Rank-Up Ready rewards); Coin/Gems already paid and the legacy cosmetics `m_ir_3/6/10` stay and still resolve. Tag/Gradient Collection Level 10 still means "everything", so it now includes rank gradients and achievement cosmetics (Gradient Completionist therefore needs the top rank gradients). Service-worker cache is `gold-offline-v3.0.0` (also now pre-caches `cos295.js` / `addon295.js`, which were missing).
+
+### Tests run (Node, no browser)
+`node tests/update30.test.js`: 102 passed, 0 failed (ranks, gradients, achievements, tracking, migration, claims, pity, Aviamasters 1.5M-flight simulation, wiring, whole-loader-bundle parse). All older suites re-run: no new failures caused by this update. 23 failures exist on the untouched repository (identical before and after this update) and remain: `economy` (stale 2.0-era expectations: rank names, Gem rate, catalog counts, Plinko; plus "daily quests reset" which depends on the weekday it is run), `security` (spin speed), `update23` (4 crate-open tests), `update26` (animation clock), `update27` (case-pirate.jpg is a PNG; dev.js loader regex), `update28` (2 stale), `update29` (rarest-jackpot label), `update295` (EXPLOIT_AUDIT.md missing).
+Also run: the full game bundle loaded in jsdom with every page mounted (Home, Rank-Up with 4 pages, Achievements, Mastery, Inventory, Shop, Quests, Daily, Aviamasters, Cases), a rank-up walk Division 2 -> Bedrock III, claim + celebration overlay: no runtime errors.
+
+### Known limitations
+- **No real browser was available**: CSS animations, particles, outlines, the celebration overlay and layouts were NOT visually verified (jsdom does not render). The Netherite/Bedrock "gradient outline" is an animated drop-shadow colour cycle (CSS cannot stroke text with a true gradient while the fill is a clipped gradient), so it is an approximation of a gradient outline.
+- `[THE NETHER]` uses the Google font "Press Start 2P" (loaded in `game.html`, cached by the service worker after first online visit); offline on a first visit it falls back to monospace.
+- Achievement thresholds/rewards are a first balance pass (not play-tested); `Rare Discoveries` and `Legendary Discoveries` are capped at counts that exist in the catalog today (20 / 15).
+
+
+## Update 3.1 (game simplification: no wagering)
+See `UPDATE_3.1_README.md` for the full list. Summary: the calculator landing page, periodic table and about:blank tab host are removed (`index.html` now redirects to `game.html`); all wagering, balances and Coin are gone. Every round is worth a rank-based number of points (`Econ.unit()`), a game's multiplier scales it, and points fill the Rank-Up bar. Rank-ups, the Daily Spin, the Gem-Shop (crates) and all ten minigames are kept. Tests: `node tests/update31.test.js`.
