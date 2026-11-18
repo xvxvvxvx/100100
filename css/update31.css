@@ -1,1 +1,6 @@
-
+/* v3.1: the round-value box that replaced the bet input in every game's side panel */
+.rvrow{display:grid;gap:6px}
+.rv{padding:10px;border:2px solid #ffffff55;border-radius:10px;background:#000;font-size:15px;text-align:center}
+.rv b{font-size:18px}
+.rvrow.dis{opacity:.6}
+.gmrow+.who{margin-top:8px}
