@@ -1,0 +1,80 @@
+/* Gold - the only place ranks, rewards, drop rates, prices and quest rules are defined.
+   v3.1: there is no wagering. A round is worth a fixed number of points (see Econ.unit); ranks give Gems (and speed tiers) on rank-up. */
+const CFG={
+ROUND:{SCALE:1,QUEST_BASE:5},               // v3.1: one round at 1x is worth (rank-up points / rank-up rounds) x SCALE points; QUEST_BASE = points that count as one round for the points quests
+// v2.5 economy: req.c re-curved (was 2,500 .. 7,000,000; now 250 .. 1,100,000). Games return ~98% now, so progress comes from grinding (rank money = positive round profits), not compounding; round counts (r) are unchanged.
+// v2.5b: rank rounds cut ~20% and rank money ~10% (about 20% less time per rank-up; the money gate is trimmed less so it is not the bottleneck).
+// RANKS[i].req = requirement to go from rank i to i+1 (c = rank points, r = rounds);  RANKS[i].rw = Gems (g) granted on reaching rank i.
+RANKS:[
+{n:'Unranked',g:['#9ca3af','#6b7280'],req:{c:225,r:40},   rw:{g:0}},
+{n:'Copper',  g:['#e8b27a','#a0612f'],req:{c:725,r:50},  rw:{g:1}},
+{n:'Bronze',  g:['#c58a5c','#7a4526'],req:{c:2300,r:70},  rw:{g:2}},
+{n:'Silver',  g:['#f8fafc','#aab4c0'],req:{c:4500,r:80},  rw:{g:3}},
+{n:'Iron',    g:['#b4b9c4','#4b5563'],req:{c:8100,r:160}, rw:{g:4}},
+{n:'Ruby',    g:['#f87171','#8f1818'],req:{c:13000,r:240}, rw:{g:5}},
+{n:'Emerald', g:['#4ade80','#14532d'],req:{c:18000,r:320},rw:{g:6}},
+{n:'Amethyst',g:['#d8b4fe','#6d28d9'],req:{c:27000,r:480},rw:{g:7}},
+{n:'Diamond', g:['#93c5fd','#1e3a8a'],req:{c:45000,r:600},rw:{g:8}},
+{n:'Ascended',g:['#ffffff','#7dd3fc'],req:{c:63000,r:800},rw:{g:10}},
+{n:'Verifier I',  g:['#fde68a','#d97706'],req:{c:72000,r:800}, rw:{g:12}},
+// v2.25 Rank Expansion I. ic = badge icon: check | champion | radiant | demon | xdemon (image icons live in img/, see BIMG in js/ui.js)
+// v2.6: Champion I-III use img/champion.jpg and Radiant I-III use img/radiant.jpg. Until you drop those files in, a blank white box is shown.
+{n:'Verifier II', g:['#fde68a','#d97706'],req:{c:81000,r:800}, rw:{g:12},ic:'check'},
+{n:'Verifier III',g:['#fde68a','#d97706'],req:{c:90000,r:800}, rw:{g:12},ic:'check'},
+{n:'Champion I',  g:['#9f1d2e','#f5b08a'],req:{c:115000,r:1000}, rw:{g:14},ic:'champion'},
+{n:'Champion II', g:['#9f1d2e','#f5b08a'],req:{c:130000,r:1000}, rw:{g:14},ic:'champion'},
+{n:'Champion III',g:['#9f1d2e','#f5b08a'],req:{c:155000,r:1200}, rw:{g:14},ic:'champion'},
+{n:'Radiant I',   g:['#ffd84d','#d9c9a3'],req:{c:170000,r:1200}, rw:{g:16},ic:'radiant'},
+{n:'Radiant II',  g:['#ffd84d','#d9c9a3'],req:{c:190000,r:1200}, rw:{g:16},ic:'radiant'},
+{n:'Radiant III', g:['#ffd84d','#d9c9a3'],req:{c:215000,r:1400}, rw:{g:16},ic:'radiant'},
+{n:'Insane Demon I', g:['#ff7a45','#c2221a'],req:{c:250000,r:1600}, rw:{g:18},ic:'demon'},
+{n:'Insane Demon II',g:['#ff7a45','#c2221a'],req:{c:270000,r:1600}, rw:{g:18},ic:'demon'},
+// v2.45 Rank Expansion 2. Icons: img/<file> (white placeholders until real art is dropped in with the same filename).
+{n:'Extreme Demon I',   g:['#ff3b2e','#d11a12'],req:{c:295000,r:1200}, rw:{g:20},ic:'xdemon'},
+{n:'Extreme Demon II',  g:['#c0261c','#7a0f0a'],req:{c:315000,r:1200}, rw:{g:20},ic:'xdemon'},
+{n:'Extreme Demon III', g:['#9c1a14','#d11a12'],req:{c:350000,r:1400}, rw:{g:20},ic:'xdemon'},
+{n:'Impossible Demon I',  g:['#8e24aa','#e53935'],req:{c:380000,r:1400}, rw:{g:22},ic:'impdemon'},
+{n:'Impossible Demon II', g:['#8e24aa','#e53935'],req:{c:405000,r:1400}, rw:{g:22},ic:'impdemon'},
+{n:'Impossible Demon III',g:['#8e24aa','#e53935'],req:{c:440000,r:1600}, rw:{g:22},ic:'impdemon'},
+{n:'Unreal I',   g:['#ffffff','#e9b8d8'],req:{c:485000,r:1600}, rw:{g:24},ic:'unreal'},
+{n:'Unreal II',  g:['#ffffff','#e9b8d8'],req:{c:540000,r:1600}, rw:{g:24},ic:'unreal'},
+{n:'Unreal III', g:['#ffffff','#e9b8d8'],req:{c:610000,r:2000}, rw:{g:24},ic:'unreal'},
+{n:'Division 5', g:['#b8962e','#555555'],req:{c:685000,r:2000}, rw:{g:26},ic:'div5'},
+{n:'Division 4', g:['#b8962e','#4a4a4a'],req:{c:765000,r:2400}, rw:{g:28},ic:'div4'},
+{n:'Division 3', g:['#b8860b','#3a3a3a'],req:{c:855000,r:2400}, rw:{g:30},ic:'div3'},
+{n:'Division 2', g:['#c8860b','#b01010'],req:{c:990000,r:2400}, rw:{g:32},ic:'div2'},
+{n:'Division 1', g:['#e69a1a','#a01010'],req:{c:1100000,r:2600}, rw:{g:34},ic:'div1'},
+// v3.0 Rank Expansion 3 (Elite, Obsidian, Netherite, Bedrock). req = what is needed to rank UP from this rank; Bedrock III (req:null) is the maximum. Icons: img/elite.jpg, obsidian.jpg, netherite.jpg, bedrock.jpg (white placeholders until art is dropped in; filenames are mapped in BIMG, js/ui.js).
+{n:'Elite I', g:['#000000','#ffd84d'],req:{c:1220000,r:2600}, rw:{g:36},ic:'elite'},
+{n:'Elite II', g:['#000000','#ffd84d'],req:{c:1350000,r:2800}, rw:{g:38},ic:'elite'},
+{n:'Elite III', g:['#000000','#ffd84d'],req:{c:1500000,r:2800}, rw:{g:40},ic:'elite'},
+{n:'Obsidian I', g:['#0b0014','#a855f7'],req:{c:1660000,r:3000}, rw:{g:42},ic:'obsidian'},
+{n:'Obsidian II', g:['#0b0014','#a855f7'],req:{c:1830000,r:3000}, rw:{g:44},ic:'obsidian'},
+{n:'Obsidian III', g:['#0b0014','#a855f7'],req:{c:2020000,r:3200}, rw:{g:46},ic:'obsidian'},
+{n:'Netherite I', g:['#2b2b30','#6b6b75'],req:{c:2230000,r:3200}, rw:{g:48},ic:'netherite'},
+{n:'Netherite II', g:['#2b2b30','#6b6b75'],req:{c:2460000,r:3400}, rw:{g:50},ic:'netherite'},
+{n:'Netherite III', g:['#2b2b30','#6b6b75'],req:{c:2720000,r:3600}, rw:{g:52},ic:'netherite'},
+{n:'Bedrock I', g:['#000000','#ffffff'],req:{c:3000000,r:3800}, rw:{g:54},ic:'bedrock'},
+{n:'Bedrock II', g:['#000000','#ffffff'],req:{c:3320000,r:4000}, rw:{g:56},ic:'bedrock'},
+{n:'Bedrock III', g:['#000000','#ffffff'],req:null, rw:{g:58},ic:'bedrock'}],
+// Animation speed by rank index. Highest matching tier wins; each [rankIndex,speed] is also what the Rank-Up page displays.
+// Animation only: never payouts or odds. Cases: Silver=3, Amethyst=7, Impossible Demon I=24. Aviamasters: Silver=3, Amethyst=7, Division 5=30, Division 1=34.
+SPIN_SPEED:[[24,2.5],[7,2],[3,1.5]],
+AVI_SPEED:[[34,2.75],[30,2.5],[7,2],[3,1.5]],
+CONV:{PLINKO:2000,CASES:3,FLIP:5,'DOUBLE OR NOTHING':5},   // plays per 1 qualified mini-game round (others 1); a play also earns 1/CONV of a round's points
+GAP_MS:{MINES:1500,CHICKEN:1000,FLIP:800},                                  // minimum delay between wagers per game (enforced in Econ.cool, shared across tabs). v2.6: Plinko's 400 ms drop cooldown was removed
+LOCK_TTL_MS:15000,                          // a cross-tab bet lock with no heartbeat for this long is stale and can be taken over
+MINES:{MAX_MINES:23,MIN_MINES:1},           // v2.95: 24 mines (a single diamond left) is no longer selectable
+DAILY_RANK_SCALE:0.1,                       // v2.95: Daily Spin cash + gem rewards grow by +10% of the base per rank index (Unranked = x1)
+// Rarity: gems = normal price, deal = special-deal price, w = shop appearance weight (configurable; favours Common/Rare).
+RAR:{common:{n:'Common',gems:1,deal:1,w:50,color:'#f1f5f9'},rare:{n:'Rare',gems:2,deal:1,w:30,color:'#4f7cff'},epic:{n:'Epic',gems:3,deal:2,w:15,color:'#d066e8'},legendary:{n:'Legendary',gems:5,deal:3,w:5,color:'#ffd84d'}},
+QUEST:{DAILY_MS:24*3600*1000,WEEKLY_MS:7*24*3600*1000,WEEK_OFFSET_MS:4*24*3600*1000, // weeks start Monday 00:00 UTC
+/* v2.5b: Gem rewards buffed (daily 2/3/2 -> 3/4/3, weekly 3/2/2/2 -> 5/4/4/4). WEEKLY quests now level up: claiming one immediately replaces it with a harder one that pays more Gems.
+   up[i] = [target, gems] for level i+1 (level 0 is the base quest). Levels reset every week. */
+daily:[{id:'d_r500',kind:'rounds',target:500,gems:3,name:'Play 500 minigame rounds'},{id:'d_p10k',kind:'profit',target:2500,gems:4,name:'Earn 2,500 points from minigames'},{id:'d_t1h',kind:'time',target:3600000,gems:3,name:'Play for 1 hour'}],
+weekly:[{id:'w_r4k',kind:'rounds',target:4000,gems:5,name:'Play 4,000 minigame rounds',up:[[7000,7],[11000,10],[16000,14],[22000,18],[30000,24]]},
+{id:'w_p100k',kind:'profit',target:20000,gems:4,name:'Earn 20,000 points from minigames',up:[[40000,6],[75000,9],[125000,12],[200000,16],[320000,22]]},
+{id:'w_rk5',kind:'rank',target:5,gems:4,name:'Rank up 5 times',up:[[8,6],[12,9],[16,12],[20,16],[25,22]]},
+{id:'w_t5h',kind:'time',target:18000000,gems:4,name:'Play for 5 hours',up:[[8*3600000,6],[12*3600000,8],[17*3600000,11],[23*3600000,15],[30*3600000,20]]}]},   // time targets are in ms (fed by Store.tickPlaytime)
+DAILY:{COOLDOWN_MS:24*3600*1000,BONUS_MS:15*60*1000,BONUS_MULT:2,SPIN_MS:6500,   // 2X bonus multiplies winning PROFIT while active
+REWARDS:[{id:'low',p:60,min:250,max:750},{id:'gem',p:20,min:1,max:4},{id:'x2',p:20}]}};  // p sums to 100; gem reward is 1-4 Gems

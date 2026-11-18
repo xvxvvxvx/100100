@@ -1,0 +1,73 @@
+const Store={key:'0-100_v2.4',tpKey:'0-100_v2.4_playtime',d:null,
+armed:typeof document!=='undefined',          // integrity checks on in the browser (off in the node unit tests unless a test arms them)
+LEGACY_MIGRATION:true,                        // accept ONE unsigned 2.0 save (clamped). Set to false in a later update once players have migrated.
+tamper:0,notice:'',sh:{o:null,b:0,g:0},
+def(){return{user:'',pw:0,g:{},rk:0,rc:0,rq:0,lq:0,pt:{},bp:null,dl:0,dr:null,dc:true,bx:0,cc:{Legendary:0,Mythic:0,Secret:0,Pirate:0},cs:0,gems:0,inv:[],eq:{tag:null,grad:null},q:{dw:-1,ww:-1,d:Store.scope(null),w:Store.scope(null)},ls:Store.lsdef()}},
+/* v3.0 lifetime statistics (Achievements). lc = lifetime points earned (rounds + Daily Spin), lp = lifetime points earned from rounds, lg = lifetime Gems earned (counted in Store.sync),
+   lm = completed minigame rounds, hm = highest multiplier, ds/dsb/dsl = daily-activity streak / best streak / last active day, cg/ct = Gradient / Tag crates opened, rkh = highest rank index. */
+lsdef(){return{lc:0,lp:0,lg:0,lm:0,hm:0,ds:0,dsb:0,dsl:-1,cg:0,ct:0,rkh:0}},
+lscope(x,d,trusted){const s=this.lsdef();
+if(x&&typeof x==='object'){for(const k of['lc','lp','lg','lm','hm','ds','dsb','cg','ct','rkh'])s[k]=Math.max(0,this.num(x[k],0));s.dsl=Math.floor(this.num(x.dsl,-1));s.hm=Math.min(s.hm,1e6)}
+else if(trusted){let sx=0;for(const k in d.g)sx+=this.num(d.g[k].x,0);s.lp=s.lc=Math.round(sx*100)/100;s.lg=d.gems}   // older save: seed lifetime profit from the existing per-game "made" stats, Gems from the current Gem count
+s.rkh=Math.max(s.rkh,d.rk);s.dsb=Math.max(s.dsb,s.ds);return s},
+num(v,fb){return typeof v==='number'&&isFinite(v)?v:fb},
+int(v,fb=0){return Math.max(0,Math.floor(this.num(v,fb)))},
+best(o){return o&&typeof o==='object'&&this.num(o.v,0)>0&&typeof o.g==='string'?{v:o.v,g:o.g}:null},
+scope(o){const s={p:{rounds:0,profit:0,rank:0,time:0},c:{},n:{},l:{},b:{}};if(o&&typeof o==='object'){for(const k in s.p){s.p[k]=Math.max(0,this.num(o.p&&o.p[k],0));s.l[k]=Math.max(0,Math.min(9,Math.floor(this.num(o.l&&o.l[k],0))));s.b[k]=Math.min(s.p[k],Math.max(0,this.num(o.b&&o.b[k],0)))}   // v2.5b: l = weekly quest level per kind, b = progress baseline when that level began
+for(const k of['c','n'])if(o[k]&&typeof o[k]==='object')for(const id in o[k])if(o[k][id])s[k][id]=1}return s},
+/* ---- integrity ---- */
+hash(s){let h1=0xdeadbeef,h2=0x41c6ce57;const t='01O0|2.25|'+s;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
+h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return(h2>>>0).toString(36)+'-'+(h1>>>0).toString(36)},
+readSigned(k){let raw=null;try{raw=localStorage.getItem(k)}catch(e){}
+if(raw==null)return{raw:null,status:'none'};
+if(raw.slice(0,3)==='S2:'){const i=raw.indexOf(':',3),sg=raw.slice(3,i),body=raw.slice(i+1);return{raw:body,status:this.hash(k+body)===sg?'ok':'bad'}}
+return{raw,status:this.armed?'legacy':'ok'}},
+writeSigned(k,s){try{localStorage.setItem(k,this.armed?'S2:'+this.hash(k+s)+':'+s:s)}catch(e){}},
+/* Shadow ledger: Gems may only ever be RAISED by Rank/Daily/Quests/Mastery/Achievements/Crates (they call Store.sync() right after). Any other increase = tampering -> clamped. */
+sync(){const d=this.d,p=this.sh;if(d&&d.ls&&p&&p.o===d&&Number.isFinite(d.gems)&&d.gems>p.g)d.ls.lg+=d.gems-p.g;   // every legitimate Gem gain goes through sync(): that is where lifetime Gems earned is counted
+this.sh={o:d,g:d?d.gems:0}},
+check(){const d=this.d,s=this.sh;if(!this.armed||!d)return false;if(s.o!==d){this.sync();return false}let hit=false;
+if(!Number.isFinite(d.gems)||d.gems>s.g){d.gems=s.g;hit=true}else s.g=d.gems;
+if(hit){this.tamper++;this.notice='Tampering detected: Gems restored.';try{App.toast(this.notice);App.refresh()}catch(e){}}return hit},
+clampLegacy(d){d.gems=Math.min(d.gems,300)},
+load(){const r=this.readSigned(this.key);let o=null;const bad=r.status==='bad'||(r.status==='legacy'&&!this.LEGACY_MIGRATION);
+if(!bad&&r.raw!=null){try{o=JSON.parse(r.raw)}catch(e){}}
+const d=this.def();
+if(bad){this.tamper++;this.notice='Save data failed its integrity check and was reset.';try{const u=JSON.parse(r.raw);if(u&&typeof u.user==='string')d.user=u.user.slice(0,16)}catch(e){}}
+else if(o&&typeof o==='object'){d.user=typeof o.user==='string'?o.user.slice(0,16):'';d.pw=this.num(o.pw,0);
+d.rk=Math.min(CFG.RANKS.length-1,this.int(o.rk));d.rc=Math.max(0,this.num(o.rc,0));d.rq=this.int(o.rq);d.lq=this.int(o.lq);d.cs=this.int(o.cs);d.gems=this.int(o.gems);
+if(o.pt&&typeof o.pt==='object')for(const k in o.pt)d.pt[k]=this.int(o.pt[k]);
+d.bp=this.best(o.bp);d.dl=this.num(o.dl,0);d.dc=o.dc!==false;d.bx=this.num(o.bx,0);if(o.cc&&typeof o.cc==='object')for(const k in d.cc)d.cc[k]=this.int(o.cc[k]);
+if(o.dr&&typeof o.dr==='object'&&['low','gem','x2'].includes(o.dr.id))d.dr={id:o.dr.id,amount:this.int(o.dr.amount)};
+if(Array.isArray(o.inv))d.inv=[...new Set(o.inv.filter(id=>Cos.by(id)))];
+if(o.eq&&typeof o.eq==='object')for(const k of['tag','grad']){const c=Cos.by(o.eq[k]);if(c&&c.type===k&&d.inv.includes(c.id))d.eq[k]=c.id}
+if(o.q&&typeof o.q==='object'){d.q.dw=this.num(o.q.dw,-1);d.q.ww=this.num(o.q.ww,-1);d.q.d=this.scope(o.q.d);d.q.w=this.scope(o.q.w)}
+if(o.g&&typeof o.g==='object')for(const k in o.g){const s=o.g[k]||{};d.g[k]={n:s.n!=null?this.int(s.n):(this.num(s.w,0)>0?1:0),x:this.num(s.x,0)}}   // v3.1: n = rounds played (older saves: 1 if the game was ever played), x = points earned
+d.ls=this.lscope(o.ls,d,r.status==='ok');if(r.status==='legacy')this.clampLegacy(d)}
+if(!d.q.d.p)d.q.d=this.scope(null);if(!d.q.w.p)d.q.w=this.scope(null);
+this.d=d;this.sync();if(bad||r.status==='legacy')this.save();return d},
+save(){this.check();this.writeSigned(this.key,JSON.stringify(this.d))},
+/* Total playtime (ms): kept under its own (signed) key so several open tabs never overwrite each other. Only visible tabs count, and a tab only adds time
+   if no other tab has already counted the last second, so playtime ~= wall-clock time with the game open. */
+playtime(){const r=this.readSigned(this.tpKey);if(r.status==='bad'||r.raw==null)return{t:0,l:0};try{const o=JSON.parse(r.raw);return{t:Math.max(0,this.num(o&&o.t,0)),l:this.num(o&&o.l,0)}}catch(e){return{t:0,l:0}}},
+tickPlaytime(now=Date.now()){const p=this.playtime();if(typeof document!=='undefined'&&document.visibilityState==='hidden')return p.t;
+const dt=now-p.l;if(dt>=900){const add=Math.min(dt,2500);p.t+=add;p.l=now;this.writeSigned(this.tpKey,JSON.stringify(p));this.questTime(add)}return p.t},
+/* v2.4 playtime quests: fed ONLY from the shared playtime counter above (one tab counts each second, hidden tabs add nothing), batched to one save per ~5 s. */
+qt:0,
+questTime(ms,force){if(typeof Quests==='undefined'||!this.d||!this.d.user)return;if(ms>0)this.qt+=ms;if(!this.qt||(!force&&this.qt<5000))return;const a=this.qt;this.qt=0;this.load();Quests.add('time',a);this.save()}};
+/* v3.0 Life: the only writer of lifetime statistics (Store.d.ls). Called at the real gameplay events (Econ.settle, Rank.addPoints, Daily, Crate.open). Persisted by the caller's own Store.save(). */
+const Life={
+day:(now=Date.now())=>Math.floor((now-new Date(now).getTimezoneOffset()*60000)/864e5),
+L(){return Store.d&&Store.d.ls?Store.d.ls:null},
+touch(now=Date.now()){const l=Life.L();if(!l)return;const t=Life.day(now);if(t===l.dsl)return;l.ds=t===l.dsl+1?l.ds+1:1;l.dsl=t;if(l.ds>l.dsb)l.dsb=l.ds},
+/* current streak as the player would see it today (a missed day shows 0 until the next activity) */
+streak(now=Date.now()){const l=Life.L();if(!l)return 0;return Life.day(now)-l.dsl<=1?l.ds:0},
+points(n){const l=Life.L();if(l&&n>0)l.lc=Math.round((l.lc+n)*1e4)/1e4},
+round(unit,gross,pts,opts,now){const l=Life.L();if(!l)return;if(pts>0){l.lp=Math.round((l.lp+pts)*1e4)/1e4;Life.points(pts)}
+if(opts&&opts.noCount)return;l.lm++;Life.touch(now);const m=Math.min(1e6,Math.round(gross/unit*100)/100);if(m>l.hm)l.hm=m},
+crate(kind){const l=Life.L();if(l){if(kind==='grads')l.cg++;else if(kind==='tags')l.ct++}},
+rank(){const l=Life.L();if(l&&Store.d.rk>l.rkh)l.rkh=Store.d.rk}};
+Store.load();
+if(typeof addEventListener==='function')addEventListener('pagehide',()=>Store.questTime(0,true));   // flush pending quest playtime
+if(typeof addEventListener==='function')addEventListener('storage',e=>{if(e.key===Store.key){Store.load();try{App.refresh()}catch(x){}}}); // keep other tabs in sync
+if(typeof document!=='undefined'&&typeof setInterval==='function')setInterval(()=>Store.check(),1000);   // clamp out-of-band edits within 1 s

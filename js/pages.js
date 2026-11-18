@@ -1,0 +1,41 @@
+/* Inventory, Quests pages + cosmetic catalog preview (the Gem-Shop page lives in crates.js). All state changes go through Inv / Quests (economy.js). */
+const rarTxt=c=>`<span class="rar" style="color:${CFG.RAR[c.rar].color}">${CFG.RAR[c.rar].n.toUpperCase()}</span>`;
+const prevHtml=c=>c.type==='grad'?Cos.user('{USERNAME}',c.id):Cos.html(c);
+const gchip=()=>`<span class="gemchip" id="gchip">${gemIcon(22)} <b class="gembal">${Store.d.gems}</b></span>`;
+const Catalog={open(){
+const RR=['common','rare','epic','legendary'];let ft='all',fr='all',pg=null,pt=null;
+const entry=c=>`<button class="ce" data-id="${c.id}" title="Preview ${c.name}">${c.type==='grad'?Cos.html(c):Cos.html(c)}</button>`;
+const section=(type)=>RR.filter(r=>fr==='all'||fr===r).map(r=>{const l=COS.filter(c=>c.type===type&&c.rar===r);return `<div class="cgr"><h4 style="color:${CFG.RAR[r].color}">${CFG.RAR[r].n.toUpperCase()}</h4>${l.length?l.map(entry).join(''):'<div class="none">(NONE)</div>'}</div>`}).join('');
+const body=()=>`<div class="cfil"><label>Type <select id="cft"><option value="all">All</option><option value="grad">Name Gradients</option><option value="tag">Player Tags</option></select></label><label>Rarity <select id="cfr"><option value="all">All</option>${RR.map(r=>`<option value="${r}">${CFG.RAR[r].n}</option>`).join('')}</select></label><span class="pvo">PREVIEW ONLY: nothing here can be bought or equipped</span></div>
+<div class="cprev" aria-live="polite">Sample: ${Cos.user(esc(Store.d.user||'username'),pg)} ${pt?Cos.html(Cos.by(pt)):'<span class="notag">[NO TAG]</span>'}</div>
+<div class="cgrid">${ft!=='tag'?`<div class="cp"><h3>NAME GRADIENTS</h3>${section('grad')}</div>`:''}${ft!=='grad'?`<div class="cp"><h3>PLAYER TAGS</h3>${section('tag')}</div>`:''}</div>`;
+const m=Modal.open(`<div class="chead"><span class="cht">ALL GRADIENTS/TAGS</span><button class="xbtn" id="cx" aria-label="Close preview">X</button></div><div id="cbody"></div>`,{label:'All gradients and tags (preview)',wide:true,esc:()=>m.close()});
+const paint=()=>{$('cbody').innerHTML=body();$('cft').value=ft;$('cfr').value=fr;$('cft').onchange=e=>{ft=e.target.value;paint()};$('cfr').onchange=e=>{fr=e.target.value;paint()};
+document.querySelectorAll('.ce').forEach(b=>b.onclick=()=>{const c=Cos.by(b.dataset.id);if(c.type==='grad')pg=c.id;else pt=c.id;paint()})};
+$('cx').onclick=()=>m.close();paint()}};
+Pages.inventory={mount(app){let dr={tag:Store.d.eq.tag,grad:Store.d.eq.grad};
+const dirty=()=>dr.tag!==Store.d.eq.tag||dr.grad!==Store.d.eq.grad,ord=c=>Object.keys(CFG.RAR).indexOf(c.rar);
+const card=c=>{const on=dr[c.type]===c.id;return `<div class="ic"><div class="sprev">${prevHtml(c)}</div><div class="sname">${c.name}<br>${rarTxt(c)}</div><button class="eqb ${on?'un':'eq'}" data-eq="${c.id}">${on?'UNEQUIP':'EQUIP'}</button></div>`};
+const own=t=>Store.d.inv.map(Cos.by).filter(c=>c&&c.type===t).sort((a,b)=>ord(a)-ord(b));
+const render=()=>{const g=own('grad'),t=own('tag'),eq=Store.d.eq;
+app.innerHTML=`<h2 class="sec">🎒 Inventory ›</h2>${gchip()}<div class="dp invp"><div class="invl"><h3 class="lined">OWNED GRADIENTS</h3><div class="igrid">${g.map(card).join('')||'<p class="none">No gradients yet. Visit the Gem-Shop!</p>'}</div><h3 class="lined">OWNED TAGS</h3><div class="igrid">${t.map(card).join('')||'<p class="none">No tags yet. Visit the Gem-Shop!</p>'}</div></div>
+<div class="invr"><h3>CURRENT BUILD:</h3><div class="build" id="build"><div class="bprev">${Cos.user(esc(Store.d.user),dr.grad)}<br>${dr.tag?Cos.html(Cos.by(dr.tag)):'<span class="notag">[NO TAG]</span>'}</div><small>${dirty()?'PREVIEW (not saved yet)':'Equipped'}</small></div>
+<button class="savb" id="sv" ${dirty()?'':'disabled'}>SAVE CHANGES</button>${dirty()?'<button class="cnb" id="cc2">CANCEL CHANGES</button>':''}<button class="rstb" id="rd">RESET TO DEFAULT</button></div></div>`;
+document.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{const c=Cos.by(b.dataset.eq);if(!Inv.owned(c.id))return;dr[c.type]=dr[c.type]===c.id?null:c.id;render()});
+$('sv').onclick=()=>{if(!Inv.apply(dr.tag,dr.grad)){App.toast('You do not own that cosmetic');return}App.refresh();render();App.toast('Cosmetics saved')};
+if($('cc2'))$('cc2').onclick=()=>{dr={tag:Store.d.eq.tag,grad:Store.d.eq.grad};render()};$('rd').onclick=()=>{dr={tag:null,grad:null};render()}};
+render()}};
+Pages.quests={mount(app){Quests.sync();
+const lbl=(q,p)=>q.kind==='rounds'?`${p}/${q.target} Minigame Rounds Played`:q.kind==='profit'?`${Econ.fi(p)}/${Econ.fi(q.target)} Points earned`:q.kind==='time'?`${fdur(p)}/${fdur(q.target)} Played`:`${p}/${q.target} Rank-ups`;
+/* v2.5b animations: fresh = quests that just levelled up (pop-in), doneSeen = quests already complete on the last render (a newly complete one gets the completion burst). */
+const fresh=new Set(),doneSeen=new Set();let seeded=false,animUntil=0;   // animUntil: the page re-renders on every progress change (playtime moves each second), so it waits while a pop-in / completion animation plays
+const card=(sc,q)=>{const p=Quests.prog(sc,q),dn=Quests.done(sc,q),cl=Quests.claimed(sc,q),key=sc+':'+q.id+':'+(q.lv||0),nw=fresh.has(key),jd=seeded&&dn&&!cl&&!doneSeen.has(key);
+return `<div class="qc${cl?' claimed':''}${dn&&!cl?' ready':''}${nw?' qnew':''}${jd?' qjust':''}" data-q="${q.id}" data-k="${key}">${q.lv?`<div class="qtier">TIER ${q.lv+1}</div>`:''}${nw?'<div class="qnewb">NEW QUEST!</div>':''}${jd?'<div class="qchk">✔</div>':''}<div class="qn">${q.name}</div><div class="qp ${dn?'ok':''}">${lbl(q,p)}</div>${cl?`<div class="qb done">CLAIMED<br><small><span data-qreset="${sc}"></span></small></div>`:dn?`<button class="qb claim" data-claim="${sc}:${q.id}">CLAIM REWARD</button>`:'<div class="qb off">NOT YET COMPLETED</div>'}<div class="qr">Reward: ${q.gems} Gem${q.gems>1?'s':''}</div></div>`};
+let sg='';const sig=()=>{Quests.sync();return ['d','w'].map(sc=>Quests.list(sc).map(q=>q.id+':'+(q.lv||0)+':'+Quests.done(sc,q)+':'+Quests.claimed(sc,q)).join()).join('|')};   // structure only: ids, levels, done, claimed
+const upd=()=>['d','w'].forEach(sc=>Quests.list(sc).forEach(q=>{const e=app.querySelector(`.qc[data-q="${q.id}"] .qp`),t=lbl(q,Quests.prog(sc,q));if(e&&e.textContent!==t)e.textContent=t}));   // live progress text is patched in place so running animations are never restarted
+const render=()=>{Quests.sync();sg=sig();app.innerHTML=`<h2 class="sec">🏅 Quests ›</h2>${gchip()}<div class="dp qp2"><h3 class="lined" id="dq">DAILY QUESTS <small class="rs"><span data-qreset="d"></span></small></h3><div class="qgrid">${Quests.list('d').map(q=>card('d',q)).join('')}</div><h3 class="lined" id="wk">WEEKLY QUESTS <small class="rs"><span data-qreset="w"></span></small></h3><p class="qhint">Claim a weekly quest and a harder one worth more Gems takes its place.</p><div class="qgrid">${Quests.list('w').map(q=>card('w',q)).join('')}</div></div>`;fresh.clear();
+const nowDone=new Set();document.querySelectorAll('.qc.ready').forEach(c=>nowDone.add(c.dataset.k));document.querySelectorAll('.qc.qjust').forEach(c=>{FX.confetti(c,26)});if(document.querySelector('.qc.qnew,.qc.qjust'))animUntil=Date.now()+1900;doneSeen.clear();nowDone.forEach(k=>doneSeen.add(k));seeded=true;
+document.querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>{const[sc,id]=b.dataset.claim.split(':');if(b.dataset.busy)return;b.dataset.busy=1;const g=Quests.claim(sc,id);if(g==null){App.toast('Reward already claimed');render();return}
+App.refresh();const nq=Quests.list(sc).find(x=>x.id===id),up=sc==='w'&&nq&&nq.lv&&!Quests.claimed(sc,nq);if(up)fresh.add(sc+':'+id+':'+nq.lv);const card=b.closest('.qc');FX.confetti(card,30);card.insertAdjacentHTML('beforeend',`<div class="qpop">+${g} ${gemIcon(22)} Gem${g>1?'s':''}!</div>`);card.classList.add('claiming');App.toast(`Quest reward claimed: +${g} Gem${g>1?'s':''}${up?'. A harder weekly quest just unlocked!':''}`);setTimeout(render,1300)});Shell.tick()};
+render();Pages._tick=()=>{if(app.querySelector('.claiming')||Date.now()<animUntil)return;if(sig()!==sg)render();else upd()};return()=>{Pages._tick=null}}};   // re-render on reset or live progress (e.g. playtime)
+Pages.weekly={mount(app){const c=Pages.quests.mount(app);const e=$('wk');if(e)e.scrollIntoView({block:'start'});return c}};
